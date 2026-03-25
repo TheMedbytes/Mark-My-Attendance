@@ -1,0 +1,111 @@
+:root {
+  --primary: #2563EB;
+  --secondary: #14B8A6;
+  --accent: #F59E0B;
+  --success: #10B981;
+  --danger: #EF4444;
+  --bg-gradient: linear-gradient(135deg, #EFF6FF 0%, #CCFBF1 100%);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --text-main: #1E293B;
+  --text-muted: #64748B;
+  --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.dark-mode {
+  --bg-gradient: linear-gradient(135deg, #0F172A 0%, #064E3B 100%);
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+
+body {
+  background: var(--bg-gradient);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.screen { display: none; height: 100vh; width: 100vw; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* Glassmorphism Utilities */
+.glass-card, .glass-header, .glass-nav {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+}
+
+.glass-card {
+  border-radius: 20px;
+  padding: 20px;
+  margin: 15px;
+}
+
+/* Typography & Layout */
+h1, h2, h3 { font-weight: 600; }
+.text-center { text-align: center; }
+.full-width { width: 100%; }
+
+/* Buttons */
+.btn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.btn:active { transform: scale(0.96); }
+.glass-btn { background: var(--glass-bg); color: var(--text-main); border: 1px solid var(--glass-border); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-warning { background: var(--accent); color: white; }
+.icon-btn { background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; }
+
+/* Login */
+.login-card { margin: auto; text-align: center; max-width: 400px; padding: 40px 20px; }
+.login-card p { margin: 15px 0 30px; color: var(--text-muted); }
+
+/* Header & Nav */
+.glass-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; position: sticky; top: 0; z-index: 10; border-radius: 0 0 20px 20px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+
+.bottom-nav { position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; padding: 10px 0 25px; border-radius: 20px 20px 0 0; z-index: 10; }
+.nav-item { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; }
+.nav-item.active { color: var(--primary); }
+
+/* Main Content Views */
+#content-area { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+.view { display: none; animation: fadeIn 0.3s ease; }
+.view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Widget & Timetable List */
+.accent-border { border-left: 4px solid var(--accent); }
+.widget-header { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+.pulse-dot { width: 8px; height: 8px; background: var(--danger); border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+.action-buttons { display: flex; gap: 10px; margin-top: 15px; }
+.action-buttons .btn { flex: 1; padding: 10px; font-size: 14px; }
+
+.timetable-list { padding: 0 15px; }
+.slot-card { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.slot-info { display: flex; justify-content: space-between; align-items: center; }
+.slot-time { color: var(--text-muted); font-size: 14px; }
+
+/* Editor */
+.glass-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-main); margin-bottom: 10px; font-size: 16px;}
