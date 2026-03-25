@@ -18,9 +18,20 @@
         <span class="material-icons-round" style="font-size: 48px; color: var(--primary);">health_and_safety</span>
         <h1>MedAttend</h1>
       </div>
-      <p>Track your clinical and lecture hours seamlessly.</p>
-      <button id="btn-login" class="btn btn-primary glass-btn">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" width="20">
+      
+      <div id="email-login-form">
+        <input type="email" id="login-email" class="glass-input" placeholder="Email" style="margin-bottom:10px">
+        <input type="password" id="login-pass" class="glass-input" placeholder="Password" style="margin-bottom:10px">
+        <div class="action-buttons" style="margin-bottom:15px">
+            <button id="btn-email-login" class="btn btn-primary" style="flex:1">Login</button>
+            <button id="btn-email-signup" class="btn glass-btn" style="flex:1">Register</button>
+        </div>
+      </div>
+
+      <div style="margin: 10px 0; color: var(--text-muted); font-size: 12px;">OR</div>
+
+      <button id="btn-login" class="btn btn-primary glass-btn full-width">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20">
         Sign in with Google
       </button>
     </div>
@@ -34,7 +45,6 @@
     </header>
 
     <main id="content-area">
-      
       <section id="view-home" class="view active">
         <div id="quick-widget" class="glass-card accent-border hidden">
           <div class="widget-header">
@@ -43,17 +53,15 @@
           <h3 id="current-subject">Pharmacology</h3>
           <p id="current-time">8:00 - 8:50</p>
           <div class="action-buttons">
-            <button class="btn btn-success" onclick="markAttendance('present', true)">Present</button>
-            <button class="btn btn-danger" onclick="markAttendance('absent', true)">Absent</button>
-            <button class="btn btn-warning" onclick="markAttendance('leave', true)">Leave</button>
+            <button class="btn btn-success" onclick="markAttendance(null, 'present', true)">Present</button>
+            <button class="btn btn-danger" onclick="markAttendance(null, 'absent', true)">Absent</button>
           </div>
         </div>
 
         <button id="btn-mark-all" class="btn btn-primary glass-btn full-width">Mark All Remaining Present</button>
 
         <h3 class="section-title">Today's Schedule</h3>
-        <div id="today-timetable" class="timetable-list">
-          </div>
+        <div id="today-timetable" class="timetable-list"></div>
       </section>
 
       <section id="view-dashboard" class="view">
@@ -65,6 +73,10 @@
         <div class="glass-card chart-container">
           <canvas id="attendanceChart"></canvas>
         </div>
+
+        <h3 class="section-title">Attendance History</h3>
+        <div id="history-list" class="timetable-list">
+          </div>
       </section>
 
       <section id="view-timetable" class="view">
@@ -78,26 +90,16 @@
             <option value="5">Friday</option>
             <option value="6">Saturday</option>
           </select>
-          <div id="editor-slots">
-            </div>
+          <div id="editor-slots"></div>
           <button id="btn-save-timetable" class="btn btn-primary glass-btn full-width" style="margin-top: 15px;">Save Timetable</button>
         </div>
       </section>
     </main>
 
     <nav class="glass-nav bottom-nav">
-      <button class="nav-item active" data-target="view-home">
-        <span class="material-icons-round">today</span>
-        <span>Today</span>
-      </button>
-      <button class="nav-item" data-target="view-dashboard">
-        <span class="material-icons-round">dashboard</span>
-        <span>Dashboard</span>
-      </button>
-      <button class="nav-item" data-target="view-timetable">
-        <span class="material-icons-round">edit_calendar</span>
-        <span>Timetable</span>
-      </button>
+      <button class="nav-item active" data-target="view-home"><span class="material-icons-round">today</span><span>Today</span></button>
+      <button class="nav-item" data-target="view-dashboard"><span class="material-icons-round">dashboard</span><span>Stats</span></button>
+      <button class="nav-item" data-target="view-timetable"><span class="material-icons-round">edit_calendar</span><span>Edit</span></button>
     </nav>
   </div>
 
