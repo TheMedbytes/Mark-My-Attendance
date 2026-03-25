@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MedAttend - PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="light-mode">
+  <div class="bg-gradient"></div>
+
+  <div id="login-screen" class="screen active">
+    <div class="glass-card login-card">
+      <div class="logo">
+        <span class="material-icons-round" style="font-size: 48px; color: var(--primary);">health_and_safety</span>
+        <h1>MedAttend</h1>
+      </div>
+      <p>Track your clinical and lecture hours seamlessly.</p>
+      <button id="btn-login" class="btn btn-primary glass-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" width="20">
+        Sign in with Google
+      </button>
+    </div>
+  </div>
+
+  <div id="main-app" class="screen">
+    <header class="glass-header">
+      <h2 id="page-title">Today</h2>
+      <button id="btn-theme" class="icon-btn"><span class="material-icons-round">dark_mode</span></button>
+      <img id="user-avatar" src="" alt="Profile" class="avatar">
+    </header>
+
+    <main id="content-area">
+      
+      <section id="view-home" class="view active">
+        <div id="quick-widget" class="glass-card accent-border hidden">
+          <div class="widget-header">
+            <span class="pulse-dot"></span> Current Lecture
+          </div>
+          <h3 id="current-subject">Pharmacology</h3>
+          <p id="current-time">8:00 - 8:50</p>
+          <div class="action-buttons">
+            <button class="btn btn-success" onclick="markAttendance('present', true)">Present</button>
+            <button class="btn btn-danger" onclick="markAttendance('absent', true)">Absent</button>
+            <button class="btn btn-warning" onclick="markAttendance('leave', true)">Leave</button>
+          </div>
+        </div>
+
+        <button id="btn-mark-all" class="btn btn-primary glass-btn full-width">Mark All Remaining Present</button>
+
+        <h3 class="section-title">Today's Schedule</h3>
+        <div id="today-timetable" class="timetable-list">
+          </div>
+      </section>
+
+      <section id="view-dashboard" class="view">
+        <div class="glass-card stat-card text-center">
+          <h3>Overall Attendance</h3>
+          <h1 id="overall-percentage">0%</h1>
+          <p id="attendance-status" class="status-text">Calculating...</p>
+        </div>
+        <div class="glass-card chart-container">
+          <canvas id="attendanceChart"></canvas>
+        </div>
+      </section>
+
+      <section id="view-timetable" class="view">
+        <div class="glass-card">
+          <h3>Edit Weekly Schedule</h3>
+          <select id="day-selector" class="glass-input">
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+          </select>
+          <div id="editor-slots">
+            </div>
+          <button id="btn-save-timetable" class="btn btn-primary glass-btn full-width" style="margin-top: 15px;">Save Timetable</button>
+        </div>
+      </section>
+    </main>
+
+    <nav class="glass-nav bottom-nav">
+      <button class="nav-item active" data-target="view-home">
+        <span class="material-icons-round">today</span>
+        <span>Today</span>
+      </button>
+      <button class="nav-item" data-target="view-dashboard">
+        <span class="material-icons-round">dashboard</span>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-target="view-timetable">
+        <span class="material-icons-round">edit_calendar</span>
+        <span>Timetable</span>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
