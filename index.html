@@ -1,108 +1,1074 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MedAttend - PWA</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>done. — Attendance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0B1120;
+    --card: #151E30;
+    --card2: #1A2540;
+    --border: #1E2D45;
+    --text: #E2E8F0;
+    --sub: #64748B;
+    --accent: #3B82F6;
+    --green: #34D399;
+    --red: #F87171;
+    --amber: #FBBF24;
+    --accent-dim: rgba(59,130,246,0.15);
+  }
+  .light {
+    --bg: #F1F5F9;
+    --card: #FFFFFF;
+    --card2: #F8FAFC;
+    --border: #E2E8F0;
+    --text: #1E293B;
+    --sub: #94A3B8;
+    --green: #10B981;
+    --red: #EF4444;
+    --amber: #F59E0B;
+    --accent-dim: rgba(59,130,246,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+  #app {
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg);
+  }
+
+  /* ── Header ── */
+  #header {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .logo { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+  .pct-badge {
+    font-size: 13px; font-weight: 700;
+    background: var(--accent-dim); color: var(--accent);
+    padding: 4px 12px; border-radius: 20px;
+  }
+  .icon-btn {
+    background: none; border: none; color: var(--sub);
+    cursor: pointer; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; transition: background 0.2s;
+  }
+  .icon-btn:hover { background: var(--border); }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  /* ── Content ── */
+  #content { flex: 1; overflow-y: auto; padding-bottom: 80px; }
+
+  /* ── Bottom Nav ── */
+  #nav {
+    position: fixed; bottom: 0;
+    width: 100%; max-width: 430px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    display: flex; z-index: 50;
+  }
+  .nav-btn {
+    flex: 1; padding: 10px 0 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    color: var(--sub); font-size: 10px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.2s;
+  }
+  .nav-btn.active { color: var(--accent); font-weight: 700; }
+  .nav-btn svg { width: 22px; height: 22px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card2 { background: var(--card2); border-radius: 12px; padding: 10px 12px; }
+  .section { padding: 16px 20px 0; }
+  .label {
+    font-size: 11px; font-weight: 700;
+    color: var(--sub); text-transform: uppercase;
+    letter-spacing: 0.8px; margin-bottom: 10px;
+  }
+
+  /* ── Pill buttons ── */
+  .pill {
+    border: none; border-radius: 20px;
+    padding: 5px 14px; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: opacity 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pill:active { opacity: 0.7; }
+  .btn-present { background: rgba(52,211,153,0.2); color: var(--green); }
+  .btn-present.active { background: var(--green); color: #fff; }
+  .btn-absent { background: rgba(248,113,113,0.2); color: var(--red); }
+  .btn-absent.active { background: var(--red); color: #fff; }
+
+  /* ── Progress bar ── */
+  .prog-bg { background: var(--border); border-radius: 6px; height: 6px; overflow: hidden; flex: 1; }
+  .prog-fill { height: 100%; border-radius: 6px; transition: width 0.4s; }
+
+  /* ── Subject row ── */
+  .subj-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .subj-row:last-child { border-bottom: none; }
+
+  /* ── Big % ── */
+  .big-pct { font-family: 'Syne', sans-serif; font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+
+  /* ── Alert card ── */
+  .alert-card {
+    background: rgba(248,113,113,0.1);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: 14px; padding: 12px 16px; margin-bottom: 10px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .alert-card svg { width: 18px; height: 18px; color: var(--red); flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Snackbar ── */
+  #snackbar {
+    position: fixed; bottom: 90px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #1E293B; color: #fff;
+    border-radius: 12px; padding: 10px 18px;
+    display: flex; gap: 12px; align-items: center;
+    font-size: 13px; font-weight: 600;
+    z-index: 200; box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    white-space: nowrap; opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  #snackbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: all; }
+  #snack-undo {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 4px 10px; font-size: 12px;
+    font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ── Calendar ── */
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7,1fr);
+    gap: 3px; padding: 0 16px 16px;
+  }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 8px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer; border: 2px solid transparent;
+    transition: all 0.15s; padding: 2px;
+    font-size: 12px; font-weight: 500;
+  }
+  .cal-day:hover { background: var(--border); }
+  .cal-day.today { border-color: var(--accent); background: var(--accent-dim); font-weight: 800; color: var(--accent); }
+  .cal-day.selected { border-color: var(--accent); background: rgba(59,130,246,0.2); }
+  .cal-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 2px; }
+  .cal-headers { display: grid; grid-template-columns: repeat(7,1fr); padding: 10px 16px 4px; }
+  .cal-hdr { text-align: center; font-size: 11px; color: var(--sub); font-weight: 700; }
+
+  /* ── Day sheet ── */
+  #day-sheet {
+    margin: 0 16px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+    display: none;
+  }
+  #day-sheet.open { display: block; }
+  .sheet-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+
+  /* ── Mini chart ── */
+  .chart-wrap { overflow-x: auto; }
+
+  /* ── Tabs ── */
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* ── Subject analytics mini cards ── */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .stat-mini { background: var(--card2); border-radius: 10px; padding: 8px 10px; }
+  .stat-mini .sm-label { font-size: 9px; color: var(--sub); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-mini .sm-val { font-size: 20px; font-weight: 800; font-family: 'Syne', sans-serif; margin: 2px 0; }
+  .stat-mini .sm-sub { font-size: 10px; color: var(--sub); }
+
+  /* ── Report toggle ── */
+  .seg-ctrl { display: flex; gap: 8px; margin-bottom: 12px; }
+
+  /* ── Settings rows ── */
+  .set-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .set-row:last-child { border-bottom: none; }
+  .set-val { color: var(--accent); font-weight: 600; font-size: 13px; }
+
+  /* ── Dot color helpers ── */
+  .dot-p { background: var(--green); }
+  .dot-a { background: var(--red); }
+  .dot-m { background: var(--amber); }
+  .dot-h { background: var(--sub); }
+  .dot-u { background: var(--accent); }
+
+  /* ── Animations ── */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .tab.active > * { animation: fadeIn 0.25s ease forwards; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ── Holiday toggle ── */
+  .hol-btn {
+    background: rgba(251,191,36,0.15); color: var(--amber);
+    border: none; border-radius: 10px; padding: 6px 12px;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .hol-btn.on { background: var(--amber); color: #1E293B; }
+
+  /* ── Weekly summary ── */
+  .week-card {
+    display: flex; gap: 12px; align-items: center;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .week-emoji { font-size: 26px; }
+  .week-pct { margin-left: auto; font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: var(--green); }
+
+  /* Mobile safe area */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    #nav { padding-bottom: env(safe-area-inset-bottom); }
+  }
+</style>
 </head>
-<body class="light-mode">
-  <div class="bg-gradient"></div>
+<body>
+<div id="app">
 
-  <div id="login-screen" class="screen active">
-    <div class="glass-card login-card">
-      <div class="logo">
-        <span class="material-icons-round" style="font-size: 48px; color: var(--primary);">health_and_safety</span>
-        <h1>MedAttend</h1>
-      </div>
-      
-      <div id="email-login-form">
-        <input type="email" id="login-email" class="glass-input" placeholder="Email" style="margin-bottom:10px">
-        <input type="password" id="login-pass" class="glass-input" placeholder="Password" style="margin-bottom:10px">
-        <div class="action-buttons" style="margin-bottom:15px">
-            <button id="btn-email-login" class="btn btn-primary" style="flex:1">Login</button>
-            <button id="btn-email-signup" class="btn glass-btn" style="flex:1">Register</button>
-        </div>
-      </div>
-
-      <div style="margin: 10px 0; color: var(--text-muted); font-size: 12px;">OR</div>
-
-      <button id="btn-login" class="btn btn-primary glass-btn full-width">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20">
-        Sign in with Google
+  <!-- Header -->
+  <div id="header">
+    <div class="logo">done<span>.</span></div>
+    <div class="header-right">
+      <div class="pct-badge" id="overall-badge">—%</div>
+      <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
       </button>
     </div>
   </div>
 
-  <div id="main-app" class="screen">
-    <header class="glass-header">
-      <h2 id="page-title">Today</h2>
-      <button id="btn-theme" class="icon-btn"><span class="material-icons-round">dark_mode</span></button>
-      <img id="user-avatar" src="" alt="Profile" class="avatar">
-    </header>
+  <!-- Content -->
+  <div id="content">
 
-    <main id="content-area">
-      <section id="view-home" class="view active">
-        <div id="quick-widget" class="glass-card accent-border hidden">
-          <div class="widget-header">
-            <span class="pulse-dot"></span> Current Lecture
+    <!-- ══ HOME TAB ══ -->
+    <div class="tab active" id="tab-home">
+      <div class="section">
+        <!-- Hero card -->
+        <div class="card" id="hero-card" style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="label" style="margin-bottom:4px;">Overall Attendance</div>
+              <div class="big-pct" id="hero-pct" style="color:var(--green)">—%</div>
+              <div style="font-size:13px;color:var(--sub);margin-top:2px;" id="hero-frac">— / — classes</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;color:var(--sub);" id="today-date"></div>
+              <div style="margin-top:8px;font-size:12px;" id="track-status"></div>
+            </div>
           </div>
-          <h3 id="current-subject">Pharmacology</h3>
-          <p id="current-time">8:00 - 8:50</p>
-          <div class="action-buttons">
-            <button class="btn btn-success" onclick="markAttendance(null, 'present', true)">Present</button>
-            <button class="btn btn-danger" onclick="markAttendance(null, 'absent', true)">Absent</button>
+          <div style="margin-top:14px;" id="mini-bars"></div>
+        </div>
+
+        <!-- Alerts -->
+        <div id="alerts-wrap"></div>
+
+        <!-- Today's classes -->
+        <div class="label">Today's Classes</div>
+        <div class="card" id="today-card"></div>
+
+        <!-- Quick stat cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:4px;" id="quick-cards"></div>
+
+        <!-- Weekly summary -->
+        <div style="margin-top:12px;" id="weekly-wrap"></div>
+      </div>
+    </div>
+
+    <!-- ══ CALENDAR TAB ══ -->
+    <div class="tab" id="tab-calendar">
+      <div style="padding:16px 20px 0;display:flex;justify-content:space-between;align-items:center;">
+        <button class="icon-btn" onclick="calPrev()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div style="font-size:17px;font-weight:800;font-family:'Syne',sans-serif;" id="cal-title"></div>
+        <button class="icon-btn" onclick="calNext()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="cal-headers" id="cal-headers"></div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <!-- Legend -->
+      <div style="padding:0 20px 10px;display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;gap:5px;align-items:center;font-size:11px;color:var(--sub)"><div class="cal-dot dot-p"></div>Present</div>
+        <div style="display:flex;gap:5px;align-items:center;font-size:11px;color:var(--sub)"><div class="cal-dot dot-a"></div>Absent</div>
+        <div style="display:flex;gap:5px;align-items:center;font-size:11px;color:var(--sub)"><div class="cal-dot dot-m"></div>Mixed</div>
+        <div style="display:flex;gap:5px;align-items:center;font-size:11px;color:var(--sub)"><div class="cal-dot dot-h"></div>Holiday</div>
+        <div style="display:flex;gap:5px;align-items:center;font-size:11px;color:var(--sub)"><div style="width:6px;height:6px;border-radius:50%;border:2px solid var(--accent);"></div>Today</div>
+      </div>
+      <!-- Day detail sheet -->
+      <div id="day-sheet">
+        <div class="sheet-header">
+          <div>
+            <div style="font-size:15px;font-weight:800;font-family:'Syne',sans-serif;" id="sheet-date"></div>
+            <div style="font-size:12px;color:var(--sub);" id="sheet-count"></div>
           </div>
+          <button class="hol-btn" id="hol-btn" onclick="toggleHolidaySelected()">Mark Holiday</button>
         </div>
+        <div id="sheet-classes"></div>
+      </div>
+    </div>
 
-        <button id="btn-mark-all" class="btn btn-primary glass-btn full-width">Mark All Remaining Present</button>
+    <!-- ══ SUBJECTS TAB ══ -->
+    <div class="tab" id="tab-subjects">
+      <div class="section" id="subjects-list"></div>
+    </div>
 
-        <h3 class="section-title">Today's Schedule</h3>
-        <div id="today-timetable" class="timetable-list"></div>
-      </section>
-
-      <section id="view-dashboard" class="view">
-        <div class="glass-card stat-card text-center">
-          <h3>Overall Attendance</h3>
-          <h1 id="overall-percentage">0%</h1>
-          <p id="attendance-status" class="status-text">Calculating...</p>
+    <!-- ══ REPORTS TAB ══ -->
+    <div class="tab" id="tab-reports">
+      <div class="section">
+        <div class="seg-ctrl">
+          <button class="pill" style="background:var(--accent);color:#fff;" onclick="setReportPeriod('week',this)">Last 7 Days</button>
+          <button class="pill" style="background:var(--accent-dim);color:var(--accent);" onclick="setReportPeriod('month',this)">This Month</button>
         </div>
-        <div class="glass-card chart-container">
-          <canvas id="attendanceChart"></canvas>
+        <div class="card">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Attendance Trend</div>
+          <div class="chart-wrap"><svg id="trend-chart" width="320" height="90"></svg></div>
         </div>
+        <div id="reports-list"></div>
+        <button onclick="exportCSV()" class="card" style="display:flex;gap:10px;align-items:center;justify-content:center;cursor:pointer;border:1px dashed var(--border);width:100%;font-family:'DM Sans',sans-serif;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span style="font-size:14px;font-weight:600;color:var(--accent);">Export CSV</span>
+        </button>
+      </div>
+    </div>
 
-        <h3 class="section-title">Attendance History</h3>
-        <div id="history-list" class="timetable-list">
-          </div>
-      </section>
-
-      <section id="view-timetable" class="view">
-        <div class="glass-card">
-          <h3>Edit Weekly Schedule</h3>
-          <select id="day-selector" class="glass-input">
-            <option value="1">Monday</option>
-            <option value="2">Tuesday</option>
-            <option value="3">Wednesday</option>
-            <option value="4">Thursday</option>
-            <option value="5">Friday</option>
-            <option value="6">Saturday</option>
-          </select>
-          <div id="editor-slots"></div>
-          <button id="btn-save-timetable" class="btn btn-primary glass-btn full-width" style="margin-top: 15px;">Save Timetable</button>
+    <!-- ══ SETTINGS TAB ══ -->
+    <div class="tab" id="tab-settings">
+      <div class="section">
+        <div class="label">Preferences</div>
+        <div class="card">
+          <div class="set-row"><span>Attendance Threshold</span><span class="set-val">75%</span></div>
+          <div class="set-row"><span>Reminder Before Class</span><span class="set-val">10 min</span></div>
+          <div class="set-row"><span>Auto-backup</span><span class="set-val">Local</span></div>
+          <div class="set-row"><span>Week starts on</span><span class="set-val">Monday</span></div>
         </div>
-      </section>
-    </main>
+        <div class="label">Weekly Timetable</div>
+        <div class="card" id="settings-tt"></div>
+        <div class="label">Manage Holidays</div>
+        <div class="card" id="settings-hol"></div>
+        <button onclick="backupNow()" style="background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:16px;">☁️ Backup Now</button>
+        <button onclick="clearData()" style="background:rgba(248,113,113,0.15);color:var(--red);border:none;border-radius:12px;padding:12px;width:100%;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:16px;">🗑 Reset All Data</button>
+      </div>
+    </div>
 
-    <nav class="glass-nav bottom-nav">
-      <button class="nav-item active" data-target="view-home"><span class="material-icons-round">today</span><span>Today</span></button>
-      <button class="nav-item" data-target="view-dashboard"><span class="material-icons-round">dashboard</span><span>Stats</span></button>
-      <button class="nav-item" data-target="view-timetable"><span class="material-icons-round">edit_calendar</span><span>Edit</span></button>
-    </nav>
+  </div><!-- /content -->
+
+  <!-- Bottom Nav -->
+  <nav id="nav">
+    <button class="nav-btn active" onclick="switchTab('home',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </button>
+    <button class="nav-btn" onclick="switchTab('calendar',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Calendar
+    </button>
+    <button class="nav-btn" onclick="switchTab('subjects',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Subjects
+    </button>
+    <button class="nav-btn" onclick="switchTab('reports',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </button>
+    <button class="nav-btn" onclick="switchTab('settings',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </nav>
+
+  <!-- Snackbar -->
+  <div id="snackbar">
+    <span id="snack-msg"></span>
+    <button id="snack-undo" onclick="undoLast()" style="display:none;">Undo</button>
   </div>
 
-  <script type="module" src="app.js"></script>
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════════════
+const SUBJECTS = [
+  { id:'pharm',  name:'Pharmacology', short:'Pharm',   color:'#6366f1' },
+  { id:'path',   name:'Pathology',    short:'Path',    color:'#ec4899' },
+  { id:'anatomy',name:'Anatomy',      short:'Anat',    color:'#f59e0b' },
+  { id:'physio', name:'Physiology',   short:'Physio',  color:'#10b981' },
+  { id:'biochem',name:'Biochemistry', short:'BioChem', color:'#38bdf8' },
+];
+
+const TIMETABLE = {
+  1:[{time:'09:00',sid:'pharm'},{time:'11:00',sid:'path'},{time:'14:00',sid:'anatomy'}],
+  2:[{time:'09:00',sid:'physio'},{time:'11:00',sid:'biochem'}],
+  3:[{time:'09:00',sid:'pharm'},{time:'11:00',sid:'anatomy'},{time:'14:00',sid:'physio'}],
+  4:[{time:'10:00',sid:'path'},{time:'13:00',sid:'biochem'}],
+  5:[{time:'09:00',sid:'pharm'},{time:'11:00',sid:'physio'}],
+};
+
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DSHORT=['Su','Mo','Tu','We','Th','Fr','Sa'];
+const DFULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE (persisted to localStorage)
+// ═══════════════════════════════════════════════════════════════
+let attendance = {};   // { 'YYYY-MM-DD': { subjId: 'present'|'absent'|null } }
+let holidays   = new Set();
+let lastAction = null;
+let snackTimer = null;
+let calYear, calMonth;
+let calSelected = null;
+let isDark = true;
+
+function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+function loadData(){
+  try {
+    const a = localStorage.getItem('done_attendance');
+    const h = localStorage.getItem('done_holidays');
+    const th= localStorage.getItem('done_theme');
+    if(a) attendance = JSON.parse(a);
+    if(h) holidays   = new Set(JSON.parse(h));
+    if(th) isDark    = th === 'dark';
+  } catch(e){}
+}
+function saveData(){
+  localStorage.setItem('done_attendance', JSON.stringify(attendance));
+  localStorage.setItem('done_holidays',   JSON.stringify([...holidays]));
+  localStorage.setItem('done_theme', isDark ? 'dark' : 'light');
+}
+
+function seedData(){
+  const today = new Date();
+  for(let i=60;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const dow=d.getDay();
+    if(dow===0||dow===6) continue;
+    const cls=TIMETABLE[dow]||[];
+    if(!cls.length) continue;
+    const dk=dateKey(d);
+    if(attendance[dk]) continue; // don't overwrite saved
+    attendance[dk]={};
+    cls.forEach(({sid})=>{
+      attendance[dk][sid] = i===0 ? null : (Math.random()>0.2?'present':'absent');
+    });
+  }
+  // Default holidays
+  ['2026-01-26','2026-05-01','2026-05-25'].forEach(d=>holidays.add(d));
+  saveData();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════════════════════════════
+function subjStats(sid){
+  let total=0,present=0;
+  Object.entries(attendance).forEach(([dk,cls])=>{
+    if(holidays.has(dk)) return;
+    if(cls[sid]==='present'){total++;present++;}
+    else if(cls[sid]==='absent') total++;
+  });
+  return {total,present,pct:total?Math.round(present/total*100):100};
+}
+function overallStats(){
+  let total=0,present=0;
+  Object.entries(attendance).forEach(([dk,cls])=>{
+    if(holidays.has(dk)) return;
+    Object.values(cls).forEach(v=>{
+      if(v==='present'){total++;present++;}
+      else if(v==='absent') total++;
+    });
+  });
+  return {total,present,pct:total?Math.round(present/total*100):100};
+}
+function safeBunk(sid,thr=75){
+  const {total,present}=subjStats(sid);
+  return Math.max(0,Math.floor(present*100/thr)-total);
+}
+function needAttend(sid,tgt=80){
+  const {total,present}=subjStats(sid);
+  const t=tgt/100;
+  if(present/total>=t) return 0;
+  return Math.max(0,Math.ceil((t*total-present)/(1-t)));
+}
+function forecast(sid){
+  const {total,present}=subjStats(sid);
+  return {
+    ifP: Math.round((present+1)/(total+1)*100),
+    ifA: Math.round(present/(total+1)*100)
+  };
+}
+function pctColor(p){
+  if(p>=75) return 'var(--green)';
+  if(p>=60) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MARK ATTENDANCE
+// ═══════════════════════════════════════════════════════════════
+function mark(dk,sid,status){
+  const prev = attendance[dk]?.[sid] ?? null;
+  lastAction = {dk,sid,prev};
+  if(!attendance[dk]) attendance[dk]={};
+  attendance[dk][sid]=status;
+  saveData();
+  showSnack(status==='present'?'✅ Marked Present':'❌ Marked Absent', true);
+  renderAll();
+}
+function undoLast(){
+  if(!lastAction) return;
+  const {dk,sid,prev}=lastAction;
+  if(!attendance[dk]) attendance[dk]={};
+  attendance[dk][sid]=prev;
+  lastAction=null;
+  saveData();
+  hideSnack();
+  showSnack('↩ Undone');
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SNACKBAR
+// ═══════════════════════════════════════════════════════════════
+function showSnack(msg, undoable=false){
+  clearTimeout(snackTimer);
+  const sb=document.getElementById('snackbar');
+  const sm=document.getElementById('snack-msg');
+  const su=document.getElementById('snack-undo');
+  sm.textContent=msg;
+  su.style.display=undoable&&lastAction?'inline-block':'none';
+  sb.classList.add('show');
+  snackTimer=setTimeout(hideSnack,4000);
+}
+function hideSnack(){ document.getElementById('snackbar').classList.remove('show'); }
+
+// ═══════════════════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════════════════
+function toggleTheme(){
+  isDark=!isDark;
+  document.documentElement.classList.toggle('light',!isDark);
+  document.getElementById('theme-icon').innerHTML = isDark
+    ? `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`
+    : `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+  saveData();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════════════════════════
+function switchTab(name, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='calendar') renderCalendar();
+  if(name==='subjects') renderSubjects();
+  if(name==='reports')  renderReports();
+  if(name==='settings') renderSettings();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER HOME
+// ═══════════════════════════════════════════════════════════════
+function renderHome(){
+  const today=new Date();
+  const dk=dateKey(today);
+  const dow=today.getDay();
+  const classes=TIMETABLE[dow]||[];
+  const ov=overallStats();
+
+  // Header badge
+  document.getElementById('overall-badge').textContent=ov.pct+'%';
+
+  // Today date
+  document.getElementById('today-date').textContent=today.toDateString();
+
+  // Hero
+  const heroPct=document.getElementById('hero-pct');
+  heroPct.textContent=ov.pct+'%';
+  heroPct.style.color=pctColor(ov.pct);
+  document.getElementById('hero-frac').textContent=`${ov.present}/${ov.total} classes attended`;
+  const ts=document.getElementById('track-status');
+  ts.innerHTML = ov.pct>=75
+    ? `<span style="color:var(--green)">✓ On track</span>`
+    : `<span style="color:var(--red)">⚠ Below 75%</span>`;
+
+  // Mini bars
+  const mb=document.getElementById('mini-bars');
+  mb.innerHTML=SUBJECTS.map(s=>{
+    const st=subjStats(s.id);
+    return `<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--sub);width:50px;flex-shrink:0;">${s.short}</div>
+      <div class="prog-bg"><div class="prog-fill" style="width:${st.pct}%;background:${pctColor(st.pct)};"></div></div>
+      <div style="font-size:11px;font-weight:700;color:${pctColor(st.pct)};width:34px;text-align:right;">${st.pct}%</div>
+    </div>`;
+  }).join('');
+
+  // Alerts
+  const aw=document.getElementById('alerts-wrap');
+  const alerts=SUBJECTS.filter(s=>subjStats(s.id).pct<75);
+  aw.innerHTML=alerts.map(s=>{
+    const st=subjStats(s.id);
+    const need=needAttend(s.id,75);
+    return `<div class="alert-card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--red);">${s.name} — ${st.pct}%</div>
+        <div style="font-size:12px;color:var(--sub);">Attend next ${need} class${need!==1?'es':''} to reach 75%</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Today classes
+  const tc=document.getElementById('today-card');
+  if(!classes.length){
+    tc.innerHTML=`<div style="text-align:center;color:var(--sub);font-size:13px;padding:20px;">No classes scheduled today 🎉</div>`;
+  } else {
+    tc.innerHTML=classes.map(({time,sid},i)=>{
+      const subj=SUBJECTS.find(s=>s.id===sid);
+      const status=attendance[dk]?.[sid];
+      return `<div class="subj-row" style="${i===classes.length-1?'border-bottom:none':''}">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="width:10px;height:10px;border-radius:50%;background:${subj.color};flex-shrink:0;"></div>
+          <div>
+            <div style="font-size:14px;font-weight:600;">${subj.name}</div>
+            <div style="font-size:11px;color:var(--sub);">${time}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="pill btn-present ${status==='present'?'active':''}" onclick="mark('${dk}','${sid}','present')">✓ Present</button>
+          <button class="pill btn-absent  ${status==='absent' ?'active':''}" onclick="mark('${dk}','${sid}','absent')">✗ Absent</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Quick cards (first 2 subjects)
+  const qc=document.getElementById('quick-cards');
+  qc.innerHTML=SUBJECTS.slice(0,2).map(s=>{
+    const st=subjStats(s.id);
+    const bunk=safeBunk(s.id);
+    const rec=needAttend(s.id);
+    return `<div class="card" style="padding:12px;margin-bottom:0;">
+      <div style="font-size:11px;font-weight:700;color:${s.color};">${s.short}</div>
+      <div style="font-size:22px;font-weight:800;color:${pctColor(st.pct)};font-family:'Syne',sans-serif;">${st.pct}%</div>
+      <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+        ${bunk>0
+          ? `<span style="color:var(--green)">Can miss ${bunk} more</span>`
+          : `<span style="color:var(--amber)">Attend ${rec} to reach 80%</span>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Weekly summary
+  let wp=0,wt=0;
+  for(let i=6;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const wdk=dateKey(d);
+    if(holidays.has(wdk)) continue;
+    const cls=attendance[wdk];
+    if(!cls) continue;
+    Object.values(cls).forEach(v=>{ if(v==='present'){wp++;wt++;} else if(v==='absent') wt++; });
+  }
+  const wpct=wt?Math.round(wp/wt*100):0;
+  document.getElementById('weekly-wrap').innerHTML=`
+    <div class="week-card">
+      <span class="week-emoji">📊</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;">Weekly Summary</div>
+        <div style="font-size:12px;color:var(--sub);">This week: ${wp}/${wt} present (${wpct}%)</div>
+      </div>
+      <span class="week-pct" style="color:${pctColor(wpct)};">${wpct}%</span>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CALENDAR
+// ═══════════════════════════════════════════════════════════════
+function calPrev(){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext(){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+
+function dayStatus(d){
+  const dk=dateKey(d);
+  if(holidays.has(dk)) return 'holiday';
+  const cls=attendance[dk];
+  if(!cls) return 'noclass';
+  const vals=Object.values(cls).filter(v=>v!==null);
+  if(!vals.length) return 'unmarked';
+  const p=vals.filter(v=>v==='present').length;
+  const a=vals.filter(v=>v==='absent').length;
+  if(a===0) return 'present';
+  if(p===0) return 'absent';
+  return 'mixed';
+}
+const dotCls={present:'dot-p',absent:'dot-a',mixed:'dot-m',holiday:'dot-h',unmarked:'dot-u',noclass:''};
+
+function renderCalendar(){
+  document.getElementById('cal-title').textContent=`${MONTHS[calMonth]} ${calYear}`;
+
+  // Headers
+  const hdr=document.getElementById('cal-headers');
+  hdr.innerHTML=DSHORT.map(d=>`<div class="cal-hdr">${d}</div>`).join('');
+
+  const today=new Date();
+  const todayDk=dateKey(today);
+  const firstDow=new Date(calYear,calMonth,1).getDay();
+  const lastDay=new Date(calYear,calMonth+1,0).getDate();
+  const selDk=calSelected?dateKey(calSelected):null;
+
+  let html='';
+  for(let i=0;i<firstDow;i++) html+='<div></div>';
+  for(let d=1;d<=lastDay;d++){
+    const date=new Date(calYear,calMonth,d);
+    const dk=dateKey(date);
+    const st=dayStatus(date);
+    const isToday=dk===todayDk;
+    const isSel=dk===selDk;
+    let cls='cal-day';
+    if(isSel) cls+=' selected';
+    else if(isToday) cls+=' today';
+    const dotClass=dotCls[st]||'';
+    html+=`<div class="${cls}" onclick="selectCalDay(${calYear},${calMonth},${d})">
+      <span>${d}</span>
+      <div class="cal-dot ${dotClass}" style="${!dotClass?'background:transparent':''}"></div>
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+  renderDaySheet();
+}
+
+function selectCalDay(y,m,d){
+  const date=new Date(y,m,d);
+  const dk=dateKey(date);
+  if(calSelected && dateKey(calSelected)===dk){ calSelected=null; }
+  else { calSelected=date; }
+  renderCalendar();
+}
+
+function renderDaySheet(){
+  const sheet=document.getElementById('day-sheet');
+  if(!calSelected){ sheet.classList.remove('open'); return; }
+  sheet.classList.add('open');
+  const dk=dateKey(calSelected);
+  const dow=calSelected.getDay();
+  const classes=TIMETABLE[dow]||[];
+  const isHoliday=holidays.has(dk);
+
+  document.getElementById('sheet-date').textContent=calSelected.toDateString();
+  document.getElementById('sheet-count').textContent=isHoliday?'Holiday':''+classes.length+' class'+(classes.length!==1?'es':'');
+
+  const hb=document.getElementById('hol-btn');
+  hb.textContent=isHoliday?'🎉 Holiday (tap to remove)':'Mark Holiday';
+  hb.className='hol-btn'+(isHoliday?' on':'');
+
+  const sc=document.getElementById('sheet-classes');
+  if(isHoliday){
+    sc.innerHTML=`<div style="padding:20px;text-align:center;color:var(--sub);font-size:13px;">Holiday — excluded from calculations</div>`;
+    return;
+  }
+  if(!classes.length){
+    sc.innerHTML=`<div style="padding:20px;text-align:center;color:var(--sub);font-size:13px;">No classes scheduled</div>`;
+    return;
+  }
+  sc.innerHTML=classes.map(({time,sid},i)=>{
+    const subj=SUBJECTS.find(s=>s.id===sid);
+    const status=attendance[dk]?.[sid];
+    return `<div class="subj-row" style="padding:10px 16px;${i===classes.length-1?'border-bottom:none':''}">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div style="width:8px;height:8px;border-radius:50%;background:${subj.color};"></div>
+        <div>
+          <div style="font-size:13px;font-weight:600;">${subj.name}</div>
+          <div style="font-size:11px;color:var(--sub);">${time}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="pill btn-present ${status==='present'?'active':''}" onclick="mark('${dk}','${sid}','present');renderCalendar();">✓</button>
+        <button class="pill btn-absent  ${status==='absent' ?'active':''}" onclick="mark('${dk}','${sid}','absent');renderCalendar();">✗</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHolidaySelected(){
+  if(!calSelected) return;
+  const dk=dateKey(calSelected);
+  if(holidays.has(dk)) holidays.delete(dk); else holidays.add(dk);
+  saveData(); renderAll(); renderCalendar();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SUBJECTS
+// ═══════════════════════════════════════════════════════════════
+function renderSubjects(){
+  const sl=document.getElementById('subjects-list');
+  sl.innerHTML=`<div class="label">Subject Analytics</div>`+SUBJECTS.map(s=>{
+    const st=subjStats(s.id);
+    const bunk=safeBunk(s.id);
+    const rec=needAttend(s.id);
+    const fc=forecast(s.id);
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="width:40px;height:40px;border-radius:12px;background:${s.color}22;display:flex;align-items:center;justify-content:center;">
+            <div style="width:14px;height:14px;border-radius:50%;background:${s.color};"></div>
+          </div>
+          <div>
+            <div style="font-size:15px;font-weight:700;">${s.name}</div>
+            <div style="font-size:12px;color:var(--sub);">${st.present}/${st.total} classes</div>
+          </div>
+        </div>
+        <div style="font-size:28px;font-weight:800;color:${pctColor(st.pct)};font-family:'Syne',sans-serif;">${st.pct}%</div>
+      </div>
+      <div class="prog-bg" style="height:8px;margin-bottom:12px;">
+        <div class="prog-fill" style="width:${st.pct}%;background:${pctColor(st.pct)};height:8px;"></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-mini">
+          <div class="sm-label">Can Bunk</div>
+          <div class="sm-val" style="color:${bunk>0?'var(--green)':'var(--red)'};">${bunk}</div>
+          <div class="sm-sub">stay ≥75%</div>
+        </div>
+        <div class="stat-mini">
+          <div class="sm-label">Need Attend</div>
+          <div class="sm-val" style="color:${rec===0?'var(--green)':'var(--amber)'};">${rec}</div>
+          <div class="sm-sub">reach 80%</div>
+        </div>
+        <div class="stat-mini">
+          <div class="sm-label">If Next</div>
+          <div class="sm-val" style="font-size:14px;margin-top:4px;">
+            <span style="color:${pctColor(fc.ifP)};">P:${fc.ifP}%</span><br>
+            <span style="color:${pctColor(fc.ifA)};">A:${fc.ifA}%</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  REPORTS
+// ═══════════════════════════════════════════════════════════════
+function setReportPeriod(p, btn){
+  document.querySelectorAll('.seg-ctrl .pill').forEach(b=>{
+    b.style.background='var(--accent-dim)'; b.style.color='var(--accent)';
+  });
+  btn.style.background='var(--accent)'; btn.style.color='#fff';
+  renderTrendChart(p);
+}
+
+function getTrend(sid){
+  const today=new Date();
+  let rp=0,rt=0,op=0,ot=0;
+  for(let i=0;i<14;i++){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const dk=dateKey(d);
+    if(holidays.has(dk)) continue;
+    const cls=attendance[dk];
+    if(!cls||cls[sid]===undefined||cls[sid]===null) continue;
+    if(i<7){rt++;if(cls[sid]==='present')rp++;}
+    else{ot++;if(cls[sid]==='present')op++;}
+  }
+  return (rt?rp/rt:0)-(ot?op/ot:0);
+}
+
+function renderTrendChart(period='week'){
+  const today=new Date();
+  const svg=document.getElementById('trend-chart');
+  const days=period==='week'?7:30;
+  const W=320,H=70;
+  let pts=[];
+  for(let i=days-1;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const dk=dateKey(d);
+    if(holidays.has(dk)){pts.push({label:DSHORT[d.getDay()],pct:null});continue;}
+    const cls=attendance[dk];
+    if(!cls){pts.push({label:DSHORT[d.getDay()],pct:null});continue;}
+    const vals=Object.values(cls).filter(v=>v!==null);
+    if(!vals.length){pts.push({label:DSHORT[d.getDay()],pct:null});continue;}
+    const p=vals.filter(v=>v==='present').length;
+    pts.push({label:DSHORT[d.getDay()],pct:Math.round(p/vals.length*100),date:d});
+  }
+  const valid=pts.map((pt,i)=>({...pt,xi:i})).filter(p=>p.pct!==null);
+  if(!valid.length){svg.innerHTML='<text x="50%" y="50%" text-anchor="middle" fill="var(--sub)" font-size="12">No data</text>';return;}
+  const xScale=i=>(i/(pts.length-1))*(W-20)+10;
+  const yScale=p=>H-((p/100)*H);
+  const pathD=valid.map((p,i)=>`${i===0?'M':'L'} ${xScale(p.xi)} ${yScale(p.pct)}`).join(' ');
+  const circles=valid.map(p=>`<circle cx="${xScale(p.xi)}" cy="${yScale(p.pct)}" r="4" fill="${p.pct>=75?'var(--green)':'var(--red)'}" />`).join('');
+  const labels=pts.filter((_,i)=>i%(period==='week'?1:5)===0).map((p,i)=>{
+    const xi=pts.indexOf(p);
+    return `<text x="${xScale(xi)}" y="${H+16}" text-anchor="middle" fill="var(--sub)" font-size="10">${p.label||''}</text>`;
+  }).join('');
+  svg.innerHTML=`
+    <line x1="0" y1="${H*0.25}" x2="${W}" y2="${H*0.25}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="0" y1="${H*0.5}"  x2="${W}" y2="${H*0.5}"  stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+    <line x1="0" y1="${H*0.75}" x2="${W}" y2="${H*0.75}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+    <path d="${pathD}" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${circles}${labels}`;
+}
+
+function renderReports(){
+  renderTrendChart('week');
+  const rl=document.getElementById('reports-list');
+  rl.innerHTML=SUBJECTS.map(s=>{
+    const st=subjStats(s.id);
+    const trend=getTrend(s.id);
+    const arrow=trend>=0
+      ?`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
+      :`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>`;
+    return `<div class="card" style="padding:12px 16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="width:10px;height:10px;border-radius:50%;background:${s.color};"></div>
+          <span style="font-size:14px;font-weight:600;">${s.name}</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span style="font-size:11px;color:var(--sub);">${st.present}/${st.total}</span>
+          <span style="font-size:16px;font-weight:800;color:${pctColor(st.pct)};font-family:'Syne',sans-serif;">${st.pct}%</span>
+          ${arrow}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════════════════
+function renderSettings(){
+  // Timetable
+  const tt=document.getElementById('settings-tt');
+  tt.innerHTML=[1,2,3,4,5].map(dow=>{
+    const cls=TIMETABLE[dow]||[];
+    const tags=cls.map(({time,sid})=>{
+      const subj=SUBJECTS.find(s=>s.id===sid);
+      return `<span style="background:${subj.color}22;color:${subj.color};border-radius:8px;padding:3px 8px;font-size:11px;font-weight:600;">${time} ${subj.short}</span>`;
+    }).join('');
+    return `<div class="subj-row" style="flex-direction:column;align-items:flex-start;gap:6px;${dow===5?'border-bottom:none':''}">
+      <div style="font-size:12px;font-weight:700;color:var(--sub);">${['Mon','Tue','Wed','Thu','Fri'][dow-1]}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">${tags||'<span style="font-size:11px;color:var(--sub);">No classes</span>'}</div>
+    </div>`;
+  }).join('');
+
+  // Holidays
+  const hol=document.getElementById('settings-hol');
+  const hArr=[...holidays].sort();
+  hol.innerHTML=hArr.length
+    ? hArr.map(dk=>`<div class="set-row">
+        <span>${dk}</span>
+        <button onclick="removeHoliday('${dk}')" style="background:rgba(248,113,113,0.15);color:var(--red);border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">Remove</button>
+      </div>`).join('')
+    : `<div style="font-size:13px;color:var(--sub);padding:8px 0;">No holidays marked</div>`;
+}
+
+function removeHoliday(dk){ holidays.delete(dk); saveData(); renderSettings(); renderAll(); }
+function backupNow(){ saveData(); showSnack('☁️ Data saved locally!'); }
+function clearData(){
+  if(!confirm('Reset all attendance data? This cannot be undone.')) return;
+  attendance={}; holidays=new Set(); lastAction=null;
+  seedData(); renderAll();
+  showSnack('🗑 Data reset');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXPORT CSV
+// ═══════════════════════════════════════════════════════════════
+function exportCSV(){
+  let csv='Date,Subject,Status\n';
+  Object.entries(attendance).sort().forEach(([dk,cls])=>{
+    Object.entries(cls).forEach(([sid,v])=>{
+      if(v) csv+=`${dk},${SUBJECTS.find(s=>s.id===sid)?.name||sid},${v}\n`;
+    });
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='attendance.csv'; a.click();
+  showSnack('📄 CSV downloaded!');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER ALL
+// ═══════════════════════════════════════════════════════════════
+function renderAll(){
+  renderHome();
+  // re-render active tab
+  const active=document.querySelector('.tab.active');
+  if(!active) return;
+  const id=active.id;
+  if(id==='tab-calendar') renderCalendar();
+  if(id==='tab-subjects') renderSubjects();
+  if(id==='tab-reports')  renderReports();
+  if(id==='tab-settings') renderSettings();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+(function init(){
+  const today=new Date();
+  calYear=today.getFullYear();
+  calMonth=today.getMonth();
+  loadData();
+  seedData();
+  if(!isDark) document.documentElement.classList.add('light');
+  if(!isDark) document.getElementById('theme-icon').innerHTML=`<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+  renderAll();
+})();
+</script>
 </body>
 </html>
